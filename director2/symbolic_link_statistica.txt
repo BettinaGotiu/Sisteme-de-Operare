@@ -1,0 +1,6 @@
+Nume legatura: director1/symbolic_link
+Dimensiune legatura: 9
+Dimensiune fisier target: 9
+Drepturi de acces user legatura: RWX
+Drepturi de acces grup legatura: RWX
+Drepturi de acces altii legatura: RWX

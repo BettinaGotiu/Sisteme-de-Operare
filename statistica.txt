@@ -1,0 +1,18 @@
+Nume fisier: director1/snail.bmp
+Inaltime: 256
+Lungime: 256
+Drepturi de acces user: RW-
+Drepturi de acces grup: RW-
+Drepturi de acces altii: R--
+Nume fisier: director1/statistica.txt
+Dimensiune fisier: 347
+Identificatorul utilizatorului: 1000
+Drepturi de acces user: RW-
+Drepturi de acces grup: R--
+Drepturi de acces altii: ---
+Nume legatura: director1/symbolic_link
+Dimensiune legatura: 9
+Dimensiune fisier target: 9
+Drepturi de acces user legatura: RWX
+Drepturi de acces grup legatura: RWX
+Drepturi de acces altii legatura: RWX

@@ -1,0 +1,6 @@
+Nume fisier: director1/statistica.txt
+Dimensiune fisier: 347
+Identificatorul utilizatorului: 1000
+Drepturi de acces user: RW-
+Drepturi de acces grup: R--
+Drepturi de acces altii: ---

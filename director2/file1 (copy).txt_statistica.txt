@@ -1,0 +1,6 @@
+Nume fisier: director1/file1 (copy).txt
+Dimensiune fisier: 90
+Identificatorul utilizatorului: 1000
+Drepturi de acces user: RW-
+Drepturi de acces grup: RW-
+Drepturi de acces altii: R--
