@@ -275,7 +275,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
 
     fclose(fp);
 
-    // Trimite numărul de propoziții corecte la procesul părinte
+    // Trimite numărul de propoziții corecte la procesul părinte pentru scrieres
     write(pipe_fd[1], &sentence_count, sizeof(int));
 
 }
@@ -294,17 +294,18 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // Creare pipe pentru comunicarea între procese
+    // pipe comuniare intre proces parinte si fiu 
     int pipe_fd[2];
     if (pipe(pipe_fd) == -1) {
         perror("Eroare la crearea conductei");
         exit(EXIT_FAILURE);
     }
 
-    char c = argv[3][0];
+    char c = argv[3][0]; //primu caracter din al treilea argument
 
     int num_files = 0;
 
+    //se parcurge directorul deschis anterior pt fiecare fiser deschis 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
@@ -325,7 +326,7 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_SUCCESS);
             }
 
-            num_files++; // Incrementare număr de fișiere
+            num_files++; // Incrementare numar de fișiere
         }
     }
 
@@ -335,7 +336,7 @@ int main(int argc, char *argv[]) {
         wait(&status);
     }
 
-    // Închide directorul de intrare și conducta
+    // Închide directorul de intrare și pipe-ul
     closedir(dir);
     close(pipe_fd[0]);
     close(pipe_fd[1]);
@@ -343,7 +344,9 @@ int main(int argc, char *argv[]) {
     int total_sentence_count = 0;
     int sentence_count;
     while (read(pipe_fd[0], &sentence_count, sizeof(int)) > 0) {
-        total_sentence_count += sentence_count;
+        //citim rezultatele din captul conductei pip_fd[0]
+        //formam nr total de prop corecte gasite 
+        total_sentence_count += sentence_count; 
     }
 
     printf("Au fost identificate in total %d propozitii corecte care contin caracterul %c\n", total_sentence_count, c);
