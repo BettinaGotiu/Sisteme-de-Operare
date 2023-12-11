@@ -99,6 +99,8 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
     //entry->d_name = numele fișierului de intrare 
     char output_path[512];
     sprintf(output_path, "%s/%s_statistica.txt", output_dir, entry->d_name);
+    //output_path ==fisier ot statistici
+
 
     // Creare proces pentru fiecare intrare din director
     pid_t process = fork();
@@ -119,16 +121,17 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
         if (S_ISREG(var.st_mode)) {
             if (strstr(file_path, ".bmp") != NULL) {
                 // Fisier BMP
-                sprintf(buff, "Nume fisier: %s\n", file_path);
-                write(stat_file, buff, strlen(buff));
+                sprintf(buff, "Nume fisier: %s\n", file_path); //nume
+                write(stat_file, buff, strlen(buff)); //dimensiune
 
                 process_bmp_file(file_path, output_dir);
+                //pt fiecare BMP proceseaza imaginea
 
             } else if (strstr(file_path, ".txt") != NULL) {
 	      //incepe procesarea pt fisiere .txt
-                sprintf(buff, "Nume fisier: %s\n", file_path);
-                write(stat_file, buff, strlen(buff));
-		long dimension = var.st_size;
+                sprintf(buff, "Nume fisier: %s\n", file_path); //nume
+                write(stat_file, buff, strlen(buff)); //dimensiune
+		        long dimension = var.st_size;
                 sprintf(buff, "Dimensiune fisier: %ld\n", dimension);
                 write(stat_file, buff, strlen(buff));
 
@@ -158,14 +161,20 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
                 write(stat_file, buff, strlen(buff));
 		
                 execl("/home/bettina/Desktop/Sisteme-de-Operare/script.sh", "/home/bettina/Desktop/Sisteme-de-Operare/script.sh", &c, NULL);
-		
+                /*se executa scriptu script.sh 
+                inlocuieste procesu curent su scriptul 
+                trimitem caracteru c catre script */
                }
         } else if (S_ISLNK(var.st_mode)) {
             // Fisier legatura simbolica
-            char link_name[512];
+            char link_name[512]; //folosit pt stocarea numelui fisierului simbolic
+
             ssize_t link_size = readlink(file_path, link_name, sizeof(link_name) - 1);
+            /*sizeof(link_name) - 1 = dim max a bufferului -1 
+            pentru a avea spatiu pentru terminatorul de sir ('\0')*/
+
             if (link_size != -1) {
-                link_name[link_size] = '\0';
+                link_name[link_size] = '\0'; //adaugam terminatoru de sir 
 
                 sprintf(buff, "Nume legatura: %s\n", file_path);
                 write(stat_file, buff, strlen(buff));
@@ -201,7 +210,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
             sprintf(buff, "Nume director: %s\n", file_path);
             write(stat_file, buff, strlen(buff));
 
-            long user = var.st_uid;
+            long user = var.st_uid; //obtinem identificatorul userului aociat directorului
             sprintf(buff, "Identificatorul utilizatorului: %ld\n", user);
             write(stat_file, buff, strlen(buff));
 
@@ -231,16 +240,18 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
 
         // Trimite numarul de linii la procesul parinte
         int line_count = get_line_count(output_path);
-        write(pipe_fd[1], &line_count, sizeof(int));
+         //obitnem linile din fisieru de statistica
+        write(pipe_fd[1], &line_count, sizeof(int)); //scriem in pipe valoarea variabilei line_count
 
         exit(EXIT_SUCCESS);
     } else { // Proces parinte
         int status;
-        waitpid(process, &status, 0);
+        waitpid(process, &status, 0); //asteapta ca procesul fiu identificat de 'process' sa se inchieie
 
         if (WIFEXITED(status)) {
             int line_count;
-            read(pipe_fd[0], &line_count, sizeof(int));
+            read(pipe_fd[0], &line_count, sizeof(int)); /*aflam ult valoarea a proesului fiu
+            inainte ca acesta sa se incheie*/
 
             printf("S-a incheiat procesul pentru %s cu codul %d și a scris %d linii în %s\n",
                    entry->d_name, WEXITSTATUS(status), line_count, output_path);
@@ -248,6 +259,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
             printf("Procesul pentru %s a fost terminat neașteptat\n", entry->d_name);
         }
     }
+    //aici ar trebui sa deschida (again) unproces pt a citi output ul de la script
     FILE *fp = popen("/home/bettina/Desktop/Sisteme-de-Operare/script.sh", "r");
     if (fp == NULL) {
         perror("Error opening script");
@@ -258,7 +270,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
     int sentence_count = 0;
 
     while (fgets(buffer, sizeof(buffer), fp) != NULL) {
-        sentence_count = atoi(buffer);
+        sentence_count = atoi(buffer); //ar trb s aconverteasca in numar (linile gasite in numar)
     }
 
     fclose(fp);
