@@ -1,16 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <sys/types.h> //tipuri de date specifice sistemului, cum ar fi pid_t
+#include <sys/stat.h> // funcții legate de manipularea informațiilor despre fișiere lstat
+#include <unistd.h>  // sistemului de operare Unix, cum ar fi read, write, close, pipe, lseek.
+#include <fcntl.h>//Pentru operații pe descriptori de fișiere, cum ar fi open.
 #include <time.h>
 #include <string.h>
-#include <dirent.h>
-#include <sys/wait.h>
+#include <dirent.h> //manipularea informațiilor despre directoare și fișiere, cum ar fi DIR, readdir.
+#include <sys/wait.h> //așteptarea proceselor copil, cum ar fi wait, waitpid
 
+
+//functie ce primeste calea catre un fisier si returneaza nr de linii din el 
 int get_line_count(const char *filename){
-    FILE *file = fopen(filename, "r");
+    FILE *file = fopen(filename, "r"); //deschidere
     if (file == NULL) {
         perror("Error opening file");
         return -1;
@@ -19,38 +21,43 @@ int get_line_count(const char *filename){
     int line_count = 0;
     char ch;
 
-    while ((ch = fgetc(file)) != EOF) {
+    while ((ch = fgetc(file)) != EOF) { //cat timp e diferite de EOF cauta end of lines
         if (ch == '\n') {
             line_count++;
         }
     }
 
-    fclose(file);
+    fclose(file); //inchiderea fisierului 
     return line_count;
 }
 
 void process_bmp_file(const char *file_path, const char *output_dir) {
-    int img = open(file_path, O_RDWR);
+    int img = open(file_path, O_RDWR); //citire imagine cu read write
     if (img == -1) {
         perror("eroare la deschiderea imaginii BMP");
         return;
     }
 
     char header[54];
-    int buffer_bytes = read(img, header, 54);
+    int buffer_bytes = read(img, header, 54); //citirea header-ului
     if (buffer_bytes == -1) {
         perror("eroare la citirea header-ului BMP");
         close(img);
         return;
     }
-
+    
+    //aflarea inaltimii si lungimii
     int height = *(int *) &header[18];
     int width = *(int *) &header[22];
 
     // Creare imagine gri
-    unsigned char *image_data = (unsigned char *) malloc(height * width * 3);
-    read(img, image_data, height * width * 3);
 
+    //alocare memorie pt stocarea datelor pixelilor
+    unsigned char *image_data = (unsigned char *) malloc(height * width * 3);
+    read(img, image_data, height * width * 3); //citirea datelor pixelilor in buffer-ul image_data
+    
+    //transformarea in tonuri de gri
+    //parcurge tripleti de valori RGB
     for (int i = 0; i < height * width * 3; i += 3) {
         unsigned char red = image_data[i];
         unsigned char green = image_data[i + 1];
@@ -58,6 +65,7 @@ void process_bmp_file(const char *file_path, const char *output_dir) {
 
         unsigned char gray = (unsigned char)(0.299 * red + 0.587 * green + 0.114 * blue);
 
+        //actualizează valorile pentru culroi ale pixelilor cu cele gri .
         image_data[i] = gray;
         image_data[i + 1] = gray;
         image_data[i + 2] = gray;
@@ -66,16 +74,20 @@ void process_bmp_file(const char *file_path, const char *output_dir) {
     // Suprascriere imagine originala cu imaginea gri
     lseek(img, 54, SEEK_SET);
     write(img, image_data, height * width * 3);
+    /*se  deplaseaza la inceputul imaginii (dupa header) si suprascrie imaginea originala
+    cu noile date pentru pixeli */
 
     free(image_data);
     close(img);
+    //elibereaza memoria inchide fisieru BMP
 }
 
+//structura dirent contine informatii despre intrarea curenta 
 void process_file(const char *file_path, const char *output_dir, struct dirent *entry, char c, int pipe_fd[2]) {
     struct stat var;
     int r;
 
-    r = lstat(file_path, &var);
+    r = lstat(file_path, &var); //obtine informatii despre fisier
 
     if (r == -1) {
         perror("lstat");
@@ -84,6 +96,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
 
     char buff[512];
     // Construire cale completa pentru fisierul de iesire
+    //entry->d_name = numele fișierului de intrare 
     char output_path[512];
     sprintf(output_path, "%s/%s_statistica.txt", output_dir, entry->d_name);
 
