@@ -72,7 +72,7 @@ void process_bmp_file(const char *file_path, const char *output_dir) {
     }
 
     // Suprascriere imagine originala cu imaginea gri
-    lseek(img, 54, SEEK_SET);
+    lseek(img, 54, SEEK_SET); //de la inceputul headerului
     write(img, image_data, height * width * 3);
     /*se  deplaseaza la inceputul imaginii (dupa header) si suprascrie imaginea originala
     cu noile date pentru pixeli */
@@ -164,10 +164,11 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
                 /*se executa scriptu script.sh 
                 inlocuieste procesu curent su scriptul 
                 trimitem caracteru c catre script */
+                /*ar trb rezultatul sa fie redirectat catre pipe_fd[1]*/
                }
         } else if (S_ISLNK(var.st_mode)) {
             // Fisier legatura simbolica
-            char link_name[512]; //folosit pt stocarea numelui fisierului simbolic
+            char link_name[512]; //o sa fie folosit pt stocarea numelui fisierului simbolic
 
             ssize_t link_size = readlink(file_path, link_name, sizeof(link_name) - 1);
             /*sizeof(link_name) - 1 = dim max a bufferului -1 
@@ -178,7 +179,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
 
                 sprintf(buff, "Nume legatura: %s\n", file_path);
                 write(stat_file, buff, strlen(buff));
-		sprintf(buff, "Dimensiune legatura: %zd\n", link_size);
+		        sprintf(buff, "Dimensiune legatura: %zd\n", link_size);
                 write(stat_file, buff, strlen(buff));
 
                 sprintf(buff, "Dimensiune fisier target: %ld\n", var.st_size);
@@ -210,7 +211,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
             sprintf(buff, "Nume director: %s\n", file_path);
             write(stat_file, buff, strlen(buff));
 
-            long user = var.st_uid; //obtinem identificatorul userului aociat directorului
+            long user = var.st_uid; //obtinem identificatorul userului asciat directorului
             sprintf(buff, "Identificatorul utilizatorului: %ld\n", user);
             write(stat_file, buff, strlen(buff));
 
@@ -248,7 +249,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
         int status;
         waitpid(process, &status, 0); //asteapta ca procesul fiu identificat de 'process' sa se inchieie
 
-        if (WIFEXITED(status)) {
+        if (WIFEXITED(status)) { //devine true daca procesu e gata fiu
             int line_count;
             read(pipe_fd[0], &line_count, sizeof(int)); /*aflam ult valoarea a proesului fiu
             inainte ca acesta sa se incheie*/
@@ -259,7 +260,7 @@ void process_file(const char *file_path, const char *output_dir, struct dirent *
             printf("Procesul pentru %s a fost terminat neașteptat\n", entry->d_name);
         }
     }
-    //aici ar trebui sa deschida (again) unproces pt a citi output ul de la script
+    //aici ar trebui sa deschida (again) un proces pt a citi output ul de la script
     FILE *fp = popen("/home/bettina/Desktop/Sisteme-de-Operare/script.sh", "r");
     if (fp == NULL) {
         perror("Error opening script");
